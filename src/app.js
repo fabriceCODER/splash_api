@@ -10,6 +10,7 @@ import rateLimit from "express-rate-limit";
 import plumberRoutes from "./routes/plumberRoutes.js";
 import channelRoutes from "./routes/channelRoutes.js";
 import adminRoutes from "./routes/adminroutes.js";
+import notificationRoutes from "./routes/notificationRoutes";
 
 dotenv.config();
 const app = express();
@@ -42,6 +43,7 @@ app.use(limiter);
 app.use("/api/plumbers", plumberRoutes);
 app.use("/api/channels", channelRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 io.on("connection", (socket) => {
     console.log(`⚡ New client connected: ${socket.id}`);
