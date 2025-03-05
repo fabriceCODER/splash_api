@@ -7,46 +7,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model DailyReport {
-  id           String   @id @default(uuid())
-  adminId      String
-  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  date         DateTime @default(now())
-  solved       Int
-  unsolved     Int
-  waterLost    Float
-  avgSolveTime Float
-}
-
 model Admin {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique()
-  nationalId   String        @unique()
-  location     String
-  companyName  String
-  companyEmail String
-  numChannels  Int
-  reports      DailyReport[]
-  Channel      Channel[]
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  nationalId    String   @unique
+  location      String
+  companyName   String
+  companyEmail  String
+  channels      Channel[]
+  reports       DailyReport[]
 }
 
 model Plumber {
-  id         String    @id @default(uuid())
-  name       String
-  email      String    @unique()
-  nationalId String    @unique()
-  phone      String
-  channels   Channel[]
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  nationalId String  @unique
+  phone     String
+  channels  Channel[]
 }
 
 model Channel {
-  id        String   @id @default(uuid())
-  name      String
-  location  String
-  stations  Int
-  plumber   Plumber? @relation(fields: [plumberId], references: [id])
-  plumberId String?
-  Admin     Admin?   @relation(fields: [adminId], references: [id])
-  adminId   String?
+  id         String   @id @default(uuid())
+  name       String
+  location   String
+  stationCount Int
+  plumber    Plumber? @relation(fields: [plumberId], references: [id])
+  plumberId  String?
+  admin      Admin?   @relation(fields: [adminId], references: [id])
+  adminId    String?
+  status     String   @default("unsolved") // "solved" or "unsolved"
+  waterLost  Float?   // Amount of water lost
+  solveTime  Float?   // Time taken to solve the issue
+}
+
+model DailyReport {
+  id          String   @id @default(uuid())
+  admin       Admin    @relation(fields: [adminId], references: [id])
+  adminId     String
+  solved      Int
+  unsolved    Int
+  waterLost   Float
+  avgSolveTime Float
+  createdAt   DateTime @default(now())
 }
