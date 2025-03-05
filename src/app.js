@@ -4,8 +4,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
-import plumberRoutes from "./routes/plumber.routes.js";
-import channelRoutes from "./routes/channel.routes.js";
+import plumberRoutes from "./routes/plumberRoutes.js";
+import channelRoutes from "./routes/channelRoutes.js";
 import adminRoutes from "./routes/admin.routes.js";
 
 const app = express();
