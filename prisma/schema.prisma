@@ -34,8 +34,8 @@ model Admin {
 model Plumber {
   id         String    @id @default(uuid())
   name       String
-  email      String    @unique
-  nationalId String    @unique
+  email      String    @unique()
+  nationalId String    @unique()
   phone      String
   channels   Channel[]
 }
