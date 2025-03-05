@@ -7,15 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model DailyReport {
+  id           String   @id @default(uuid())
+  adminId      String
+  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  date         DateTime @default(now())
+  solved       Int
+  unsolved     Int
+  waterLost    Float
+  avgSolveTime Float
+}
+
 model Admin {
-  id           String    @id @default(uuid())
+  id           String        @id @default(uuid())
   name         String
-  email        String    @unique
-  nationalId   String    @unique
+  email        String        @unique()
+  nationalId   String        @unique()
   location     String
   companyName  String
   companyEmail String
-  channels     Channel[]
+  numChannels  Int
+  reports      DailyReport[]
+  Channel      Channel[]
 }
 
 model Plumber {
