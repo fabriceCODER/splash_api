@@ -9,6 +9,7 @@ import channelRoutes from "./routes/channelRoutes.js";
 import adminRoutes from "./routes/adminroutes.js";
 import notificationRoutes from "./routes/notificationRoutes";
 import reportRoutes from "./routes/reportRoutes";
+import analyticsRoutes from "./routes/analyticsRoutes";
 
 dotenv.config();
 const app = express();
@@ -26,6 +27,8 @@ app.use("/api/channels", channelRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/analytics", analyticsRoutes);
+
 
 
 
