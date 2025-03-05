@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
+import "./cronJobs.js";
 import plumberRoutes from "./routes/plumberRoutes.js";
 import channelRoutes from "./routes/channelRoutes.js";
 import adminRoutes from "./routes/adminroutes.js";
