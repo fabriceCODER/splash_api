@@ -37,6 +37,3 @@ model Channel {
   Admin     Admin?   @relation(fields: [adminId], references: [id])
   adminId   String?
 }
-
-// npx prisma generate
-// npx prisma migrate dev --name init
