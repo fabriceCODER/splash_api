@@ -1,10 +1,9 @@
 import express from "express";
-import { verifyToken, isPlumber } from "../middlewares/authMiddleware.js";
+import { verifyToken, isAdmin } from "../middlewares/authMiddleware.js";
+import { sendNotification } from "../controllers/notificationcontroller.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, isPlumber, (req, res) => {
-    res.json({ message: "Real-time notifications for plumbers only" });
-});
+router.post("/send", verifyToken, isAdmin, sendNotification);
 
 export default router;
