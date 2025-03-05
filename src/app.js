@@ -11,6 +11,8 @@ import adminRoutes from "./routes/adminroutes.js";
 import notificationRoutes from "./routes/notificationRoutes";
 import reportRoutes from "./routes/reportRoutes";
 import analyticsRoutes from "./routes/analyticsRoutes";
+import { swaggerDocs } from "./swaggerConfig";  // Import Swagger docs
+import swaggerUi from "swagger-ui-express";
 
 dotenv.config();
 const app = express();
@@ -22,14 +24,15 @@ app.use(morgan("dev"));
 app.use(compression());
 app.use(express.json());
 
-// Routes
+// Swagger UI for API documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));  // Swagger UI route
+
+// API Routes
 app.use("/api/plumbers", plumberRoutes);
 app.use("/api/channels", channelRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/analytics", analyticsRoutes);
-
-
 
 export { app };
