@@ -1,6 +1,6 @@
 import express from "express";
 import { createPlumber, getAllPlumbers, updatePlumber, deletePlumber } from "../controllers/plumberController.js";
-import { verifyToken, isAdmin } from "../middlewares/authMiddleware";
+import { verifyToken, isAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
