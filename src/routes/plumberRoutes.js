@@ -1,10 +1,13 @@
 import express from "express";
-import { verifyToken, isAdmin } from "../middlewares/authMiddleware.js";
+import { createPlumber, getAllPlumbers, updatePlumber, deletePlumber } from "../controllers/plumberController.js";
+import { verifyToken, isAdmin } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
-router.get("/", verifyToken, isAdmin, (req, res) => {
-    res.json({ message: "List of plumbers (Admin access only)" });
-});
+router.post("/", verifyToken, isAdmin, createPlumber);
+router.get("/", verifyToken, getAllPlumbers);
+router.put("/:id", verifyToken, isAdmin, updatePlumber);
+router.delete("/:id", verifyToken, isAdmin, deletePlumber);
 
 export default router;
+
