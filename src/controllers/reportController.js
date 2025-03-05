@@ -1,19 +1,28 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "@prisma/client";
 
-const prisma = new PrismaClient();
-
-export const getDailyReport = async (req, res) => {
+export const generateDailyReport = async (req, res) => {
     try {
         const adminId = req.user.id;
 
-        const reports = await prisma.dailyReport.findMany({
-            where: { adminId },
-            orderBy: { date: "desc" },
-            take: 7, // Last 7 reports
+        // Fetch data to include in the report
+        const solvedIssues = await prisma.issue.count({ where: { status: "solved" } });
+        const unsolvedIssues = await prisma.issue.count({ where: { status: "unsolved" } });
+        const totalWaterLost = await prisma.issue.aggregate({ _sum: { waterLost: true } });
+        const avgSolveTime = await prisma.issue.aggregate({ _avg: { solveTime: true } });
+
+        // Create the daily report
+        const report = await prisma.dailyReport.create({
+            data: {
+                adminId,
+                solved: solvedIssues,
+                unsolved: unsolvedIssues,
+                waterLost: totalWaterLost._sum.waterLost || 0,
+                avgSolveTime: avgSolveTime._avg.solveTime || 0,
+            },
         });
 
-        res.status(200).json(reports);
+        res.status(201).json(report);
     } catch (error) {
-        res.status(500).json({ message: "Error fetching reports", error });
+        res.status(500).json({ message: "Error generating daily report", error });
     }
 };
