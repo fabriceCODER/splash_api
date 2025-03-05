@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  nationalId   String    @unique
+  location     String
+  companyName  String
+  companyEmail String
+  channels     Channel[]
+}
+
+model Plumber {
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  nationalId String    @unique
+  phone      String
+  channels   Channel[]
+}
+
+model Channel {
+  id        String   @id @default(uuid())
+  name      String
+  location  String
+  stations  Int
+  plumber   Plumber? @relation(fields: [plumberId], references: [id])
+  plumberId String?
+  Admin     Admin?   @relation(fields: [adminId], references: [id])
+  adminId   String?
+}
+
+// npx prisma generate
+// npx prisma migrate dev --name init
