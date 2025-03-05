@@ -1,7 +1,9 @@
+import prisma from "@prisma/client";
+
 export const createChannel = async (req, res) => {
     try {
         const { name, location, numStations, plumberId } = req.body;
-        const channel = await prisma.channel.create({ data: { name, location, numStations, plumberId } });
+        const channel = await prisma.Channel.create({ data: { name, location, numStations, plumberId } });
         res.status(201).json(channel);
     } catch (error) {
         res.status(500).json({ message: "Error creating channel", error });
