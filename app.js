@@ -15,6 +15,7 @@ import { swaggerDocs } from "./src/swaggerConfig.js";
 import swaggerUi from "swagger-ui-express";
 import http from "http";
 import {Server} from "socket.io";
+import authRoutes from "./src/routes/authRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -52,6 +53,7 @@ io.on("connection", (socket) => {
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));  // Swagger UI route
 
 // API Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/plumbers", plumberRoutes);
 app.use("/api/channels", channelRoutes);
 app.use("/api/admin", adminRoutes);
