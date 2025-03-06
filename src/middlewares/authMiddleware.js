@@ -14,8 +14,18 @@ const verifyToken = (req, res, next) => {
         req.user = jwt.verify(token, process.env.JWT_SECRET); // Attach user data to request
         next();
     } catch (error) {
-        res.status(401).json({ message: "Invalid or expired token!" });
+        return res.status(401).json({ message: "Invalid or expired token!" });
     }
+};
+
+// **Authenticate User Middleware**
+const authenticateUser = (req, res, next) => {
+    verifyToken(req, res, () => {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized! User not authenticated." });
+        }
+        next();
+    });
 };
 
 // **Check if User is Admin**
@@ -34,4 +44,4 @@ const isPlumber = (req, res, next) => {
     next();
 };
 
-export { verifyToken, isAdmin, isPlumber };
+export { verifyToken, authenticateUser, isAdmin, isPlumber };

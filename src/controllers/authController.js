@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
-import { z } from "zod"; // For input validation
+import { z } from "zod";
 
 const prisma = new PrismaClient();
 
