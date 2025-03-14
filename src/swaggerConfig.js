@@ -10,7 +10,7 @@ const swaggerOptions = {
             description: "API documentation for the Water Channel Management System",
             contact: {
                 name: "Developer Support",
-                email: "support@example.com",
+                email: "support@splash.com",
             },
         },
         servers: [

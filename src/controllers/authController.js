@@ -33,11 +33,9 @@ const registerAdmin = async (req, res) => {
     try {
         const validatedData = adminSchema.parse(req.body);
         const existingAdmin = await prisma.admin.findUnique({ where: { email: validatedData.email } });
-
         if (existingAdmin) return res.status(400).json({ message: "Email already in use" });
 
         validatedData.password = await bcrypt.hash(validatedData.password, 10);
-
         const admin = await prisma.admin.create({ data: validatedData });
 
         res.status(201).json({ message: "Admin registered successfully", admin });
@@ -51,11 +49,9 @@ const registerPlumber = async (req, res) => {
     try {
         const validatedData = plumberSchema.parse(req.body);
         const existingPlumber = await prisma.plumber.findUnique({ where: { email: validatedData.email } });
-
         if (existingPlumber) return res.status(400).json({ message: "Email already in use" });
 
         validatedData.password = await bcrypt.hash(validatedData.password, 10);
-
         const plumber = await prisma.plumber.create({ data: validatedData });
 
         res.status(201).json({ message: "Plumber registered successfully", plumber });
@@ -68,10 +64,8 @@ const registerPlumber = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-
         const admin = await prisma.admin.findUnique({ where: { email } });
         const plumber = await prisma.plumber.findUnique({ where: { email } });
-
         const user = admin || plumber;
         const role = admin ? "admin" : plumber ? "plumber" : null;
 
@@ -83,10 +77,7 @@ const loginUser = async (req, res) => {
         const accessToken = generateAccessToken({ id: user.id, role });
         const refreshToken = generateRefreshToken({ id: user.id });
 
-        // Store refresh token securely in the database
-        await prisma.refreshToken.create({
-            data: { token: refreshToken, userId: user.id },
-        });
+        await prisma.refreshToken.create({ data: { token: refreshToken, userId: user.id } });
 
         res.status(200).json({ message: "Login successful", accessToken, refreshToken, role });
     } catch (error) {
@@ -103,12 +94,14 @@ const refreshToken = async (req, res) => {
         const storedToken = await prisma.refreshToken.findUnique({ where: { token } });
         if (!storedToken) return res.status(403).json({ message: "Invalid refresh token" });
 
-        jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
-            if (err) return res.status(403).json({ message: "Expired refresh token" });
-
+        try {
+            const user = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
             const newAccessToken = generateAccessToken({ id: user.id, role: user.role });
             res.json({ accessToken: newAccessToken });
-        });
+        } catch (error) {
+            await prisma.refreshToken.delete({ where: { token } });
+            return res.status(403).json({ message: "Expired refresh token" });
+        }
     } catch (error) {
         res.status(500).json({ message: "Error refreshing token", error: error.message });
     }
@@ -118,6 +111,9 @@ const refreshToken = async (req, res) => {
 const logoutUser = async (req, res) => {
     try {
         const { token } = req.body;
+        const storedToken = await prisma.refreshToken.findUnique({ where: { token } });
+        if (!storedToken) return res.status(400).json({ message: "Token already invalid or does not exist" });
+
         await prisma.refreshToken.delete({ where: { token } });
         res.json({ message: "Logged out successfully" });
     } catch (error) {
@@ -128,9 +124,8 @@ const logoutUser = async (req, res) => {
 // **Get Profile**
 const getProfile = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const user = await prisma.admin.findUnique({ where: { id: userId } }) ||
-            await prisma.plumber.findUnique({ where: { id: userId } });
+        const user = await prisma.admin.findFirst({ where: { id: req.user.id } }) || 
+                      await prisma.plumber.findFirst({ where: { id: req.user.id } });
 
         if (!user) return res.status(404).json({ message: "User not found" });
 
