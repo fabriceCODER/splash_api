@@ -1,28 +1,86 @@
 import express from "express";
-import { registerAdmin, registerPlumber, loginUser, getProfile, logoutUser } from "../controllers/authController.js";
-import { authenticateUser } from "../middlewares/authMiddleware.js"; // Ensure this middleware exists
+import {
+    registerAdmin,
+    registerPlumber,
+    loginUser,
+    getProfile,
+    logoutUser,
+} from "../controllers/authController.js";
+import { authenticateUser } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 /**
- * @openapi
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     AdminRegister:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *       properties:
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         password:
+ *           type: string
+ *           format: password
+ *           minLength: 6
+ *     PlumberRegister:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - phone
+ *         - password
+ *       properties:
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         phone:
+ *           type: string
+ *         password:
+ *           type: string
+ *           format: password
+ *           minLength: 6
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *         password:
+ *           type: string
+ *           format: password
+ */
+
+/**
+ * @swagger
  * /api/admin/register:
  *   post:
  *     summary: Register a new admin
+ *     tags: [Authentication]
  *     description: Registers a new admin user with the provided details.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               email:
- *                 type: string
- *               password:
- *                 type: string
+ *             $ref: '#/components/schemas/AdminRegister'
  *     responses:
  *       201:
  *         description: Admin registered successfully
@@ -34,26 +92,18 @@ const router = express.Router();
 router.post("/admin/register", registerAdmin);
 
 /**
- * @openapi
+ * @swagger
  * /api/plumber/register:
  *   post:
  *     summary: Register a new plumber
+ *     tags: [Authentication]
  *     description: Registers a new plumber user with the provided details.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               email:
- *                 type: string
- *               phone:
- *                 type: string
- *               password:
- *                 type: string
+ *             $ref: '#/components/schemas/PlumberRegister'
  *     responses:
  *       201:
  *         description: Plumber registered successfully
@@ -65,22 +115,18 @@ router.post("/admin/register", registerAdmin);
 router.post("/plumber/register", registerPlumber);
 
 /**
- * @openapi
+ * @swagger
  * /api/login:
  *   post:
  *     summary: Log in a user
+ *     tags: [Authentication]
  *     description: Authenticates a user and returns an authentication token.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
+ *             $ref: '#/components/schemas/LoginRequest'
  *     responses:
  *       200:
  *         description: User logged in successfully
@@ -101,10 +147,11 @@ router.post("/plumber/register", registerPlumber);
 router.post("/login", loginUser);
 
 /**
- * @openapi
+ * @swagger
  * /api/auth/me:
  *   get:
  *     summary: Get logged-in user profile
+ *     tags: [Authentication]
  *     description: Returns profile details of the authenticated user.
  *     security:
  *       - bearerAuth: []
@@ -117,10 +164,11 @@ router.post("/login", loginUser);
 router.get("/auth/me", authenticateUser, getProfile);
 
 /**
- * @openapi
+ * @swagger
  * /api/auth/logout:
  *   post:
  *     summary: Log out a user
+ *     tags: [Authentication]
  *     description: Logs out the authenticated user.
  *     security:
  *       - bearerAuth: []
