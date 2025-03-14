@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+
 export const getAnalytics = async (req, res) => {
     try {
         const adminId = req.user.id; // Ensure authentication middleware sets req.user
