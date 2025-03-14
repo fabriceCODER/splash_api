@@ -2,6 +2,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
+import dotenv from "dotenv";
+import { generateAccessToken, generateRefreshToken } from "../utils/tokenUtils.js";
+
+dotenv.config();
 
 const prisma = new PrismaClient();
 
@@ -76,18 +80,55 @@ const loginUser = async (req, res) => {
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) return res.status(400).json({ message: "Invalid email or password" });
 
-        const token = jwt.sign({ id: user.id, email: user.email, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+        const accessToken = generateAccessToken({ id: user.id, role });
+        const refreshToken = generateRefreshToken({ id: user.id });
 
-        res.status(200).json({ message: "Login successful", token, role });
+        // Store refresh token securely in the database
+        await prisma.refreshToken.create({
+            data: { token: refreshToken, userId: user.id },
+        });
+
+        res.status(200).json({ message: "Login successful", accessToken, refreshToken, role });
     } catch (error) {
         res.status(500).json({ message: "Error logging in", error: error.message });
+    }
+};
+
+// **Refresh Token**
+const refreshToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+        if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+        const storedToken = await prisma.refreshToken.findUnique({ where: { token } });
+        if (!storedToken) return res.status(403).json({ message: "Invalid refresh token" });
+
+        jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+            if (err) return res.status(403).json({ message: "Expired refresh token" });
+
+            const newAccessToken = generateAccessToken({ id: user.id, role: user.role });
+            res.json({ accessToken: newAccessToken });
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error refreshing token", error: error.message });
+    }
+};
+
+// **Logout User**
+const logoutUser = async (req, res) => {
+    try {
+        const { token } = req.body;
+        await prisma.refreshToken.delete({ where: { token } });
+        res.json({ message: "Logged out successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error logging out", error: error.message });
     }
 };
 
 // **Get Profile**
 const getProfile = async (req, res) => {
     try {
-        const userId = req.user.id; // Extracted from `authenticateUser` middleware
+        const userId = req.user.id;
         const user = await prisma.admin.findUnique({ where: { id: userId } }) ||
             await prisma.plumber.findUnique({ where: { id: userId } });
 
@@ -99,9 +140,4 @@ const getProfile = async (req, res) => {
     }
 };
 
-// **Logout User**
-const logoutUser = (req, res) => {
-    res.status(200).json({ message: "Logout successful" });
-};
-
-export { registerAdmin, registerPlumber, loginUser, getProfile, logoutUser };
+export { registerAdmin, registerPlumber, loginUser, refreshToken, logoutUser, getProfile };
