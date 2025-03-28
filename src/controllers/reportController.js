@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// 📌 Generate a Daily Report
+// Generate a Daily Report
 export const generateDailyReport = async (req, res) => {
     try {
         const adminId = req.user.id;
@@ -39,7 +39,7 @@ export const generateDailyReport = async (req, res) => {
     }
 };
 
-// 📌 Get Daily Reports for Admin
+// Get Daily Reports for Admin
 export const getDailyReport = async (req, res) => {
     try {
         const adminId = req.user.id;
