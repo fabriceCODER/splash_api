@@ -17,13 +17,13 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// ✅ Validation Middleware
+//  Validation Middleware
 const validateTestData = [
     check("name").trim().notEmpty().withMessage("Name is required"),
     check("email").trim().isEmail().withMessage("Valid email is required"),
 ];
 
-// 🎯 Test Route with Validation
+//  Test Route with Validation
 app.post("/test", validateTestData, (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -67,7 +67,7 @@ app.use((req, res) => {
 
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {
-    console.error("🔥 Server Error:", err.message);
+    console.error("Server Error:", err.message);
     res.status(err.status || 500).json({
         success: false,
         message: err.message || "Internal Server Error",
@@ -76,5 +76,5 @@ app.use((err, req, res, next) => {
 
 //  Start Server
 server.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
