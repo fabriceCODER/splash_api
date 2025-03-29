@@ -8,9 +8,9 @@ import http from "http";
 import { Server } from "socket.io";
 import swaggerUi from "swagger-ui-express";
 import { swaggerDocs } from "./src/swaggerConfig.js";
-import "./cronJobs.js"; // Import cron jobs
+import "./cronJobs.js"; 
 
-// Import Routes
+
 import authRoutes from "./src/routes/authRoutes.js";
 import plumberRoutes from "./src/routes/plumberRoutes.js";
 import channelRoutes from "./src/routes/channelRoutes.js";
@@ -25,15 +25,15 @@ const app = express();
 // 🔒 Security & Performance Middleware
 app.use(
     cors({
-        origin: process.env.CORS_ORIGIN || "*", // Restrict origins in production
+        origin: process.env.CORS_ORIGIN || "*",
         methods: ["GET", "POST", "PUT", "DELETE"],
-        credentials: true, // Allow cookies
+        credentials: true,
     })
 );
-app.use(helmet()); // Secure HTTP headers
-app.use(morgan("dev")); // Logging
-app.use(compression()); // Gzip compression
-app.use(express.json()); // Parse JSON requests
+app.use(helmet()); 
+app.use(morgan("dev"));
+app.use(compression());
+app.use(express.json());
 
 // Create HTTP Server for Socket.io
 const server = http.createServer(app);

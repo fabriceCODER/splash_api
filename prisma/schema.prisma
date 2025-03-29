@@ -20,35 +20,40 @@ model Admin {
 }
 
 model Plumber {
-  id         String    @id @default(uuid())
-  name       String
-  email      String    @unique
-  nationalId String    @unique
-  phone      String
-  channels   Channel[]
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  nationalId       String    @unique
+  phone            String
+  assignedChannels Channel[] @relation("PlumberChannels")
 }
 
 model Channel {
-  id           String   @id @default(uuid())
-  name         String
-  location     String
-  stationCount Int
-  plumber      Plumber? @relation(fields: [plumberId], references: [id])
-  plumberId    String?
-  admin        Admin?   @relation(fields: [adminId], references: [id])
-  adminId      String?
-  status       String   @default("unsolved") // "solved" or "unsolved"
-  waterLost    Float? // Amount of water lost
-  solveTime    Float? // Time taken to solve the issue
+  id              String   @id @default(uuid())
+  channelId       String   @unique 
+  name            String
+  location        String
+  stationCount    Int
+  plumber         Plumber? @relation("PlumberChannels", fields: [plumberId], references: [id])
+  plumberId       String?
+  admin           Admin?   @relation(fields: [adminId], references: [id])
+  adminId         String?
+  status          String   @default("unsolved") 
+  waterLost       Float? 
+  solveTime       Float? 
+  initialFlowRate Float? 
+  statusPerStation Json?   
 }
 
 model DailyReport {
-  id           String   @id @default(uuid())
-  admin        Admin    @relation(fields: [adminId], references: [id])
-  adminId      String
-  solved       Int
-  unsolved     Int
-  waterLost    Float
-  avgSolveTime Float
-  createdAt    DateTime @default(now())
+  id              String   @id @default(uuid())
+  admin           Admin    @relation(fields: [adminId], references: [id])
+  adminId         String
+  solved          Int
+  unsolved        Int
+  waterLost       Float
+  avgSolveTime    Float
+  initialFlowRate Float? 
+  stationStatus   Json?  
+  createdAt       DateTime @default(now())
 }
