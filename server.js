@@ -41,7 +41,7 @@ app.post("/test", validateTestData, (req, res) => {
     });
 });
 
-// ✅ Server Health Check Route
+//  Server Health Check Route
 app.get("/status", (req, res) => {
     res.status(200).json({
         success: true,
@@ -49,7 +49,7 @@ app.get("/status", (req, res) => {
     });
 });
 
-// ✅ Rate Limit Testing Route
+//  Rate Limit Testing Route
 app.get("/test-rate-limit", (req, res) => {
     res.status(200).json({
         success: true,
@@ -57,7 +57,7 @@ app.get("/test-rate-limit", (req, res) => {
     });
 });
 
-// ❌ Handle 404 Errors (Invalid Routes)
+// Handle 404 Errors (Invalid Routes)
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -65,7 +65,7 @@ app.use((req, res) => {
     });
 });
 
-// ❌ Global Error Handling Middleware
+// Global Error Handling Middleware
 app.use((err, req, res, next) => {
     console.error("🔥 Server Error:", err.message);
     res.status(err.status || 500).json({
@@ -74,7 +74,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 🚀 Start Server
+//  Start Server
 server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });

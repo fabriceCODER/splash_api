@@ -8,14 +8,37 @@ datasource db {
 }
 
 model Admin {
-  id           String        @id @default(uuid())
+  id           String    @id @default(uuid())
   name         String
-  email        String        @unique
-  nationalId   String        @unique
+  email        String    @unique
+  phoneNumber  String    @unique
+  passwordHash String
+  role         String    @default("ADMIN") // Future role-based access
+  createdAt    DateTime  @default(now())
+
+
+  managers     Manager[]
+  channels     Channel[]
+}
+
+model Manager {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  nationalId   String   @unique
+  phone        String
   location     String
   companyName  String
   companyEmail String
+  passwordHash String  // Secure manager login
+  createdAt    DateTime @default(now())
+
+  adminId      String
+  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  plumbers     Plumber[]
   channels     Channel[]
+
   reports      DailyReport[]
 }
 
@@ -25,6 +48,12 @@ model Plumber {
   email            String    @unique
   nationalId       String    @unique
   phone            String
+  passwordHash     String    // Plumber login credentials
+  createdAt        DateTime  @default(now())
+
+  managerId        String
+  manager          Manager   @relation(fields: [managerId], references: [id], onDelete: Cascade)
+
   assignedChannels Channel[] @relation("PlumberChannels")
 }
 
@@ -34,10 +63,14 @@ model Channel {
   name            String
   location        String
   stationCount    Int
+
+  managerId       String
+  manager         Manager  @relation(fields: [managerId], references: [id])
+
+  // Relationship: Assigned to a Plumber
   plumber         Plumber? @relation("PlumberChannels", fields: [plumberId], references: [id])
   plumberId       String?
-  admin           Admin?   @relation(fields: [adminId], references: [id])
-  adminId         String?
+
   status          String   @default("unsolved") 
   waterLost       Float? 
   solveTime       Float? 
@@ -47,8 +80,11 @@ model Channel {
 
 model DailyReport {
   id              String   @id @default(uuid())
-  admin           Admin    @relation(fields: [adminId], references: [id])
-  adminId         String
+
+
+  managerId       String
+  manager         Manager  @relation(fields: [managerId], references: [id], onDelete: Cascade)
+
   solved          Int
   unsolved        Int
   waterLost       Float
