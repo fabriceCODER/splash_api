@@ -32,7 +32,7 @@ const managerSchema = z.object({
 const plumberSchema = z.object({
     name: z.string().min(3),
     email: z.string().email(),
-    nationalId: z.string(), // Required in schema
+    nationalId: z.string(), 
     phone: z.string(),      // Required in schema
     password: z.string().min(6),
     managerId: z.string(),  // Required relation
