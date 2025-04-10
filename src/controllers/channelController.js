@@ -80,18 +80,9 @@ export const updateChannel = async (req, res) => {
         const { id } = req.params;
         const { channelId, name, location, stationCount, managerId, plumberId, status, waterLost, solveTime, initialFlowRate, statusPerStation } = req.body;
 
-        // Check if channel exists
         const channel = await prisma.channel.findUnique({ where: { id } });
         if (!channel) {
             return res.status(404).json({ message: "Channel not found" });
-        }
-
-        // If channelId is being updated, check for uniqueness
-        if (channelId && channelId !== channel.channelId) {
-            const existingChannel = await prisma.channel.findUnique({ where: { channelId } });
-            if (existingChannel) {
-                return res.status(400).json({ message: "Channel ID already exists" });
-            }
         }
 
         const updatedChannel = await prisma.channel.update({
@@ -110,6 +101,9 @@ export const updateChannel = async (req, res) => {
                 statusPerStation: statusPerStation !== undefined ? statusPerStation : channel.statusPerStation,
             },
         });
+
+        // Trigger notification check
+        await notifyOnChannelProblem(updatedChannel.channelId);
 
         res.json(updatedChannel);
     } catch (error) {
