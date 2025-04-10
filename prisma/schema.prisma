@@ -13,7 +13,7 @@ model Admin {
   email        String    @unique
   phoneNumber  String    @unique
   passwordHash String
-  role         String    @default("ADMIN") // Future role-based access
+  role         String    @default("ADMIN")
   createdAt    DateTime  @default(now())
 
 
@@ -30,7 +30,7 @@ model Manager {
   location     String
   companyName  String
   companyEmail String
-  passwordHash String  // Secure manager login
+  passwordHash String 
   createdAt    DateTime @default(now())
 
   adminId      String
@@ -48,7 +48,7 @@ model Plumber {
   email            String    @unique
   nationalId       String    @unique
   phone            String
-  passwordHash     String    // Plumber login credentials
+  passwordHash     String    
   createdAt        DateTime  @default(now())
 
   managerId        String
@@ -92,4 +92,14 @@ model DailyReport {
   initialFlowRate Float? 
   stationStatus   Json?  
   createdAt       DateTime @default(now())
+}
+
+model Notification {
+    id         String   @id @default(uuid())
+    message    String
+    channelId  String
+    plumberId  String
+    createdAt  DateTime @default(now())
+    channel    Channel  @relation(fields: [channelId], references: [id])
+    plumber    Plumber  @relation(fields: [plumberId], references: [id])
 }

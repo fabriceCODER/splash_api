@@ -5,9 +5,8 @@ const prisma = new PrismaClient();
 
 export const getAnalytics = async (req, res) => {
     try {
-        const adminId = req.user.id; // Ensure authentication middleware sets req.user
+        const adminId = req.user.id;
 
-        // Fetch all channels under the admin
         const channels = await prisma.channel.findMany({
             where: { adminId },
             include: { issues: true },
@@ -33,7 +32,7 @@ export const getAnalytics = async (req, res) => {
                 if (issue.status === "solved") {
                     solvedIssues++;
                     channelSolved++;
-                    const timeTaken = (new Date(issue.solvedAt) - new Date(issue.createdAt)) / (1000 * 60 * 60); // Convert to hours
+                    const timeTaken = (new Date(issue.solvedAt) - new Date(issue.createdAt)) / (1000 * 60 * 60); 
                     totalSolveTime += timeTaken;
                     channelSolveTime += timeTaken;
                     resolvedCount++;
@@ -57,6 +56,7 @@ export const getAnalytics = async (req, res) => {
         });
 
         const avgSolveTime = resolvedCount > 0 ? totalSolveTime / resolvedCount : 0;
+       
 
         res.status(200).json({
             totalIssues,

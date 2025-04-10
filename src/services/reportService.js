@@ -48,10 +48,10 @@ const generateDailyReport = async () => {
                 },
             });
 
-            console.log(`✅ Report for Admin ${admin.email} generated.`);
+            console.log(`Report for Admin ${admin.email} generated.`);
         }
     } catch (error) {
-        console.error("❌ Error generating report:", error);
+        console.error("Error generating report:", error);
     }
 };
 
