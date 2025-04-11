@@ -1,5 +1,5 @@
 import express from "express";
-import { generateDailyReport, getDailyReport } from "../controllers/reportcontroller.js";
+import { generateDailyReport, getDailyReports } from "../controllers/reportcontroller.js"; // Fixed import
 import { verifyToken, isAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
@@ -9,7 +9,7 @@ const router = express.Router();
  * /api/reports:
  *   get:
  *     summary: Get the last 7 daily reports
- *     description: Retrieves the last 7 daily reports. Only accessible by admins.
+ *     description: Retrieves the last 7 daily reports for the authenticated manager. Only accessible by admins.
  *     security:
  *       - bearerAuth: []  # Requires authentication with a bearer token
  *     responses:
@@ -22,22 +22,34 @@ const router = express.Router();
  *               items:
  *                 type: object
  *                 properties:
- *                   date:
+ *                   id:
+ *                     type: integer
+ *                     description: The report ID
+ *                   managerId:
+ *                     type: integer
+ *                     description: The ID of the manager
+ *                   solved:
+ *                     type: integer
+ *                     description: Number of solved issues
+ *                   unsolved:
+ *                     type: integer
+ *                     description: Number of unsolved issues
+ *                   waterLost:
+ *                     type: number
+ *                     description: Total water lost
+ *                   avgSolveTime:
+ *                     type: number
+ *                     description: Average solve time for issues
+ *                   initialFlowRate:
+ *                     type: number
+ *                     description: Average initial flow rate
+ *                   stationStatus:
+ *                     type: object
+ *                     description: Station status summary
+ *                   createdAt:
  *                     type: string
- *                     format: date
- *                     description: The date of the report
- *                   totalChannels:
- *                     type: integer
- *                     description: The total number of channels managed
- *                   totalPlumbers:
- *                     type: integer
- *                     description: The total number of plumbers
- *                   newChannels:
- *                     type: integer
- *                     description: The number of new channels added on that day
- *                   newPlumbers:
- *                     type: integer
- *                     description: The number of new plumbers added on that day
+ *                     format: date-time
+ *                     description: The date the report was created
  *       401:
  *         description: Unauthorized (no valid token provided)
  *       403:
@@ -45,21 +57,54 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.get("/", verifyToken, isAdmin, getDailyReport);
+router.get("/", verifyToken, isAdmin, getDailyReports); // Fixed function name
 
 /**
  * @openapi
  * /api/reports/generate:
  *   post:
  *     summary: Generate a new daily report
- *     description: Generates a new daily report for the system. Only accessible to admins.
+ *     description: Generates a new daily report for the authenticated manager. Only accessible to admins.
  *     security:
  *       - bearerAuth: []  # Requires authentication with a bearer token
  *     responses:
- *       200:
+ *       201:
  *         description: Daily report generated successfully
- *       400:
- *         description: Bad request (e.g., invalid data or issues with generation)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   description: The report ID
+ *                 managerId:
+ *                   type: integer
+ *                   description: The ID of the manager
+ *                 solved:
+ *                   type: integer
+ *                   description: Number of solved issues
+ *                 unsolved:
+ *                   type: integer
+ *                   description: Number of unsolved issues
+ *                 waterLost:
+ *                   type: number
+ *                   description: Total water lost
+ *                 avgSolveTime:
+ *                   type: number
+ *                   description: Average solve time for issues
+ *                 initialFlowRate:
+ *                   type: number
+ *                   description: Average initial flow rate
+ *                 stationStatus:
+ *                   type: object
+ *                   description: Station status summary
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: The date the report was created
+ *       401:
+ *         description: Unauthorized (no valid token provided)
  *       403:
  *         description: Forbidden (access restricted to admins)
  *       500:
