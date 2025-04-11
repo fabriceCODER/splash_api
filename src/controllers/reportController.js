@@ -1,10 +1,43 @@
 import { PrismaClient } from "@prisma/client";
-import cron from "node-cron"; 
+import cron from "node-cron";
 
 const prisma = new PrismaClient();
 
+// Helper function to calculate report metrics for a manager's channels
+const calculateReportMetrics = (channels) => {
+    const solvedIssues = channels.filter(channel => channel.status === "solved");
+    const unsolvedIssues = channels.filter(channel => channel.status === "unsolved");
+
+    const totalWaterLost = solvedIssues.reduce((sum, channel) => sum + (channel.waterLost || 0), 0);
+    const avgSolveTime = solvedIssues.length > 0
+        ? solvedIssues.reduce((sum, channel) => sum + (channel.solveTime || 0), 0) / solvedIssues.length
+        : 0;
+
+    const initialFlowRate = channels.length > 0
+        ? channels.reduce((sum, channel) => sum + (channel.initialFlowRate || 0), 0) / channels.length
+        : null;
+
+    const stationStatus = channels.reduce((acc, channel) => {
+        if (channel.statusPerStation) {
+            const unsolvedStations = Object.values(channel.statusPerStation).filter(status => status !== "solved").length;
+            acc.unsolvedStations = (acc.unsolvedStations || 0) + unsolvedStations;
+            acc.totalStations = (acc.totalStations || 0) + channel.stationCount;
+        }
+        return acc;
+    }, { unsolvedStations: 0, totalStations: 0 });
+
+    return {
+        solved: solvedIssues.length,
+        unsolved: unsolvedIssues.length,
+        waterLost: totalWaterLost,
+        avgSolveTime,
+        initialFlowRate,
+        stationStatus: stationStatus.totalStations > 0 ? stationStatus : null,
+    };
+};
+
 // Generate a Daily Report for a Manager (manual trigger)
-export const generateDailyReport = async (req, res) => {
+const generateDailyReport = async (req, res) => {
     try {
         const managerId = req.user.id; // Assuming req.user.id is the manager's ID
 
@@ -14,38 +47,13 @@ export const generateDailyReport = async (req, res) => {
         });
 
         // Calculate report metrics
-        const solvedIssues = channels.filter(channel => channel.status === "solved");
-        const unsolvedIssues = channels.filter(channel => channel.status === "unsolved");
-
-        const totalWaterLost = solvedIssues.reduce((sum, channel) => sum + (channel.waterLost || 0), 0);
-        const avgSolveTime = solvedIssues.length > 0
-            ? solvedIssues.reduce((sum, channel) => sum + (channel.solveTime || 0), 0) / solvedIssues.length
-            : 0;
-
-        const initialFlowRate = channels.length > 0
-            ? channels.reduce((sum, channel) => sum + (channel.initialFlowRate || 0), 0) / channels.length
-            : null;
-
-        // Aggregate station status (example: count unsolved stations)
-        const stationStatus = channels.reduce((acc, channel) => {
-            if (channel.statusPerStation) {
-                const unsolvedStations = Object.values(channel.statusPerStation).filter(status => status !== "solved").length;
-                acc.unsolvedStations = (acc.unsolvedStations || 0) + unsolvedStations;
-                acc.totalStations = (acc.totalStations || 0) + channel.stationCount;
-            }
-            return acc;
-        }, { unsolvedStations: 0, totalStations: 0 });
+        const metrics = calculateReportMetrics(channels);
 
         // Create the daily report
         const report = await prisma.dailyReport.create({
             data: {
                 managerId,
-                solved: solvedIssues.length,
-                unsolved: unsolvedIssues.length,
-                waterLost: totalWaterLost,
-                avgSolveTime,
-                initialFlowRate,
-                stationStatus: stationStatus.totalStations > 0 ? stationStatus : null,
+                ...metrics,
             },
         });
 
@@ -56,7 +64,7 @@ export const generateDailyReport = async (req, res) => {
 };
 
 // Get Daily Reports for a Manager
-export const getDailyReports = async (req, res) => {
+const getDailyReports = async (req, res) => {
     try {
         const managerId = req.user.id;
 
@@ -82,50 +90,36 @@ const generateDailyReportsForAllManagers = async () => {
                 where: { managerId: manager.id },
             });
 
-            const solvedIssues = channels.filter(channel => channel.status === "solved");
-            const unsolvedIssues = channels.filter(channel => channel.status === "unsolved");
+            if (channels.length === 0) {
+                console.log(`No channels found for manager ${manager.id}, skipping report.`);
+                continue;
+            }
 
-            const totalWaterLost = solvedIssues.reduce((sum, channel) => sum + (channel.waterLost || 0), 0);
-            const avgSolveTime = solvedIssues.length > 0
-                ? solvedIssues.reduce((sum, channel) => sum + (channel.solveTime || 0), 0) / solvedIssues.length
-                : 0;
+            // Calculate report metrics
+            const metrics = calculateReportMetrics(channels);
 
-            const initialFlowRate = channels.length > 0
-                ? channels.reduce((sum, channel) => sum + (channel.initialFlowRate || 0), 0) / channels.length
-                : null;
-
-            const stationStatus = channels.reduce((acc, channel) => {
-                if (channel.statusPerStation) {
-                    const unsolvedStations = Object.values(channel.statusPerStation).filter(status => status !== "solved").length;
-                    acc.unsolvedStations = (acc.unsolvedStations || 0) + unsolvedStations;
-                    acc.totalStations = (acc.totalStations || 0) + channel.stationCount;
-                }
-                return acc;
-            }, { unsolvedStations: 0, totalStations: 0 });
-
+            // Create the daily report
             await prisma.dailyReport.create({
                 data: {
                     managerId: manager.id,
-                    solved: solvedIssues.length,
-                    unsolved: unsolvedIssues.length,
-                    waterLost: totalWaterLost,
-                    avgSolveTime,
-                    initialFlowRate,
-                    stationStatus: stationStatus.totalStations > 0 ? stationStatus : null,
+                    ...metrics,
                 },
             });
+
+            console.log(`Daily report generated for manager ${manager.id}`);
         }
 
-        console.log("Daily reports generated for all managers");
+        console.log("Daily reports generation completed for all managers");
     } catch (error) {
         console.error("Error generating daily reports:", error.message);
     }
 };
 
-// Schedule daily report generation at midnight
-cron.schedule("0 0 * * *", () => {
-    console.log("Generating daily reports...");
-    generateDailyReportsForAllManagers();
+// Schedule daily report generation at midnight CAT (UTC+2)
+// Since node-cron doesn't support time zones directly, schedule at 22:00 UTC (00:00 CAT)
+cron.schedule("0 0 22 * * *", generateDailyReportsForAllManagers, {
+    timezone: "UTC", 
 });
 
+// Export only the necessary functions
 export { generateDailyReport, getDailyReports };
