@@ -8,7 +8,6 @@ import http from "http";
 import { Server } from "socket.io";
 import swaggerUi from "swagger-ui-express";
 import { swaggerDocs } from "./src/swaggerConfig.js";
-import "./cronJobs.js"; 
 
 
 import authRoutes from "./src/routes/authRoutes.js";
@@ -17,10 +16,13 @@ import channelRoutes from "./src/routes/channelRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
 import reportRoutes from "./src/routes/reportRoutes.js";
-import analyticsRoutes from "./src/routes/analyticsRoutes.js";
+import managerRoutes from "./src/routes/managerRoutes.js"; // Updated from analyticsRoutes
 
 dotenv.config();
+
 const app = express();
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // 🔒 Security & Performance Middleware
 app.use(
@@ -30,7 +32,7 @@ app.use(
         credentials: true,
     })
 );
-app.use(helmet()); 
+app.use(helmet());
 app.use(morgan("dev"));
 app.use(compression());
 app.use(express.json());
@@ -48,10 +50,11 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
     console.log(`⚡ New client connected: ${socket.id}`);
 
-    socket.on("join_channel", (channelId) => {
-        if (channelId) {
-            socket.join(channelId);
-            console.log(`✅ Plumber joined channel: ${channelId}`);
+    // Plumbers join their own ID room for notifications
+    socket.on("join_plumber", (plumberId) => {
+        if (plumberId) {
+            socket.join(plumberId);
+            console.log(`✅ Plumber joined room: ${plumberId}`);
         }
     });
 
@@ -70,7 +73,7 @@ app.use("/api/channels", channelRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/reports", reportRoutes);
-app.use("/api/analytics", analyticsRoutes);
+app.use("/api/manager", managerRoutes); // Updated from /api/analytics
 
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {
